@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>UBL Factuur Viewer</title>
+<meta name="viewport" content="initial-scale=1.0">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<link rel="stylesheet" href="lib\w3.css">
+<link rel="stylesheet" href="lib\w3-theme-light-blue.css">
+
+<script>
+//<!-- Routines voor het inlezen (en transformeren) van een UBL factuur -->
+
+/* Functie voor het inlezen van de gekozen ubl factuur */
+function handleFileSelect(evt) {
+    var files = evt.target.files; // FileList object
+
+    // files is a FileList of File objects. List some properties.
+    var output = [];
+    for (var i = 0, file; file = files[i]; i++) {
+      output.push('<li><strong>', file.name, '</strong> (', file.type || 'n/a', ') - ',
+                  file.size, ' bytes, last modified: ',
+                  //file.lastModified ? file.lastModifiedDate.toLocaleDateString() : 'n/a',
+                  file.lastModified ? new Date(file.lastModified).toLocaleDateString() : 'n/a',
+                  '</li>');
+				  //var fn=file.name;
+				  var bestandNaam= file.name.split('\\').pop().split('/').pop();
+				  console.log("Gekozen bestand: "+file.name);
+				  console.log("Naam: "+bestandNaam);
+				  
+				  // Zet de naam van de factuur in de kop
+				  document.getElementById('ublnaam_top').innerHTML="&nbsp;"+bestandNaam;
+				  
+				  displayResult( encodeURI(file.name) );
+    }
+    document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
+}
+
+
+
+
+
+// displayResult gewijzigd naar 'async' verwerking. Zie https://stackoverflow.com/questions/14220321/how-do-i-return-the-response-from-an-asynchronous-call
+// er zijn drie trappen:
+// - laad de XML file  
+// - laad de XSL file
+// - voer de XSL transformatie op de XSL uit.
+// De 'async' uitvoering vereist 'callbacks'
+function displayResult(xmlFile) {
+	//xml = loadXMLDoc(xmlFile);
+	//xsl = loadXMLDoc("cdcatalog_client.xsl");
+	loadXMLDoc(xmlFile);
+}
+
+
+// wordt als callback door 'loadXSLDoc' gebruikt
+function transform(xmlDoc, xslDoc){
+	console.log("transform");
+	if (window.ActiveXObject || xhttp.responseType == "msxml-document") {
+	  // code for IE
+	  ex = xmlDoc.transformNode(xslDoc);
+	  // schrijf info naar html pagina voor IE
+	  document.getElementById("example").innerHTML = ex;
+	} else if (document.implementation && document.implementation.createDocument) {
+	  // code for Chrome, Firefox, Opera, etc.
+	  xsltProcessor = new XSLTProcessor();
+	  xsltProcessor.importStylesheet(xslDoc);
+	  resultDocument = xsltProcessor.transformToFragment(xmlDoc, document);
+	  // schrijf info naar html pagina
+	  document.getElementById("example").appendChild(resultDocument);
+	}
+}
+
+// loadXMLDoc nu als 'async' uitgevoerd.
+function loadXMLDoc(filename) {
+	console.log("loadXMLDoc "+filename);
+	if (window.ActiveXObject) {
+	  xhttp = new ActiveXObject("Msxml2.XMLHTTP");
+	} else {
+	  xhttp = new XMLHttpRequest();
+	}
+	// Definiëer de callback methode
+    xhttp.onload = function(){ // when the request is loaded
+		console.log("xhttp.onload");
+		// ToDo: detecteer welk XML bestand dit is en kies op basis daarvan de juiste XSL
+		loadXSLDoc("UBL21_Invoice.xsl", xhttp.responseXML);// we're calling our method
+    };
+	xhttp.onreadystatechange = function(){
+		console.log("Status "+xhttp.readyState+" Status "+xhttp.statusText);
+	}
+	xhttp.open("GET", filename, true);
+	
+	
+	try {xhttp.responseType = "msxml-document"} catch(err) {} // Helping IE11
+	xhttp.send("");
+	//return xhttp.responseXML;
+}
+
+// loadXSLDoc is kopie van loadXMLDoc, alleen de callback is anders.
+function loadXSLDoc(filename, xml) {
+	console.log("loadXSLDoc "+filename);
+	if (window.ActiveXObject) {
+	  xhttp = new ActiveXObject("Msxml2.XMLHTTP");
+	} else {
+	  xhttp = new XMLHttpRequest();
+	}
+	// Definiëer de callback methode
+    xhttp.onload = function(){ // when the request is loaded
+		console.log("onload");
+       transform(xml, xhttp.responseXML);// we're calling our method
+    };
+	xhttp.onreadystatechange = function(){
+		console.log("Status "+xhttp.readyState+" Status "+xhttp.statusText);
+	}
+	xhttp.open("GET", filename, true);
+	
+	try {xhttp.responseType = "msxml-document"} catch(err) {} // Helping IE11
+	xhttp.send("");
+	//return xhttp.responseXML;
+}
+
+
+</script>
+
+<!-- Functies hvoor het selecteren van de TABs -->
+<!-- gebaseerd io: https://www.w3schools.com/w3css/w3css_tabulators.asp -->
+<script>
+function openTab(evt, tabName) {
+    var i;
+	//alert("Klik op tab "+tabName);
+	// Get all elements with class="tabInhoud" and hide them
+    var tabInhoud = document.getElementsByClassName("tabInhoud");
+    for (i = 0; i < tabInhoud.length; i++) {
+       tabInhoud[i].style.display = "none";  
+    }
+	// Get all elements with class="tabLink" and remove the class "active"
+    var tabLinks = document.getElementsByClassName("tabLink");
+    for (i = 0; i < tabLinks.length; i++) {
+       //tabLinks[i].classname = tabLinks[i].className.replace(" active", "");
+		tabLinks[i].classname = tabLinks[i].className.replace("w3-theme-l2", "w3-theme-l4");	   
+    }
+	// Show the current tab, and add an "active" class to the button that opened the tab
+	document.getElementById(tabName).style.display = "block";
+	//evt.currentTarget.className += " active";
+	evt.currentTarget.className = evt.currentTarget.className.replace("w3-theme-l4", "w3-theme-l2");
+}
+
+</script>
+
+
+</head>
+<!-- <body onload="displayResult()"> -->
+<body>
+
+<div class="ublnaam_top" id="ublnaam_top">
+	&nbsp; Open een UBL Factuur
+</div>
+
+<!-- Hoofdmenu met twee keuzen: Open en Info -->
+<!-- bron: w3schools css tab bar: https://www.w3schools.com/w3css/w3css_tabulators.asp -->
+<div class="w3-bar w3-border w3-theme-l4 nav ">
+    <button class="tabLink w3-bar-item w3-button w3-border w3-hover-theme " onclick="openTab(event,'ubl_tab')">Factuur</button>
+    <button class="tabLink w3-bar-item w3-button w3-border w3-hover-theme " onclick="openTab(event,'info_tab')">Info</button>
+</div>
+
+<!-- Pagina 'Open UBL Factuur', kies een bestand, open het en pas XSL transformatie toe -->
+  <div id="ubl_tab" class="tabInhoud w3-container w3-border" style="display: block">
+  <h3 style="display: inline;">UBL Factuur</h3>
+  &ensp;Ubl Invoice
+  <div id="ubl_inhoud">
+  <p>Open een UBL Factuur:</p>
+	<input type="file" id="files" name="files" accept=".xml" multiple class="w3-btn w3-theme-l4 w3-round-xlarge w3-border " />
+	<script>
+		document.getElementById('files').addEventListener('change', handleFileSelect, false);
+	</script>
+	</div>
+  </div> <!-- einde van de div 'ubl_tab' -->
+
+
+<!-- Pagina 'Open UBL Factuur' toon een help-tekst -->
+  <div id="info_tab" class="tabInhoud w3-container w3-border" style="display: none">
+  <h3 style="display: inline;">Info</h3>
+  <p>Hier komt toelichting op </p>
+  <ul>
+	<li>het doel van dit project </li>
+	<li>gebruiksaanwijzing</li>
+	<li>de gebruikte techniek</li>
+	<li>verwijzing naar licentie en bron van gebruikte libraries</li>
+   </ul>
+   <p>...</p>
+  </div> <!-- einde van de div 'info_tab' -->
+
+
+
+<div id="list" ></div>
+<div id="example" ></div>
+</body>
+</html> 
