@@ -8,6 +8,28 @@
 <link rel="stylesheet" href="lib\w3.css">
 <link rel="stylesheet" href="lib\w3-theme-light-blue.css">
 
+<style>
+table, th, td {
+     border-collapse: collapse;
+}
+
+table.afzender {
+    width: auto;
+    margin-right: 0px;
+    margin-left: auto;
+}
+table.invoiceline, table.invoiceline th, table.invoiceline td {
+    width: 100%;
+    border: solid black 1px;
+}
+table.totaal, table.totaal th, table.totaal td {
+    width: 100%;
+    border: solid black 1px;
+}
+
+</style>
+
+
 <script>
 //<!-- Routines voor het inlezen (en transformeren) van een UBL factuur -->
 
@@ -193,6 +215,9 @@ function openTab(evt, tabName) {
 
 
 <div id="list" ></div>
-<div id="example" ></div>
+<div id="example" class-"w3-container w3-border">
+   <p>...</p>
+</div>
+
 </body>
 </html> 
