@@ -9,3 +9,8 @@ Beperking:
 - nog zeer experimenteel
 - heel weinig onderdelen van de factuur geïmplementeerd
 
+
+## Zie ook:
+[Uitleg over de inhoud van een UBL factuur](https://www.softwarepakketten.nl/betekenis/142&pg=235&bronw=1&terug=pag/UBL.htm)
+[Validatie-artefacts voor SI-UBL en NLCIUS](https://github.com/peppolautoriteit-nl/validation/tree/2020-09-01)
+
